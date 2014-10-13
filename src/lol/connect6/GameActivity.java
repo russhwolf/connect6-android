@@ -1,61 +1,48 @@
 package lol.connect6;
 
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
+import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
 
 public class GameActivity extends ActionBarActivity {
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		int theme = Integer.parseInt(settings.getString("board_style_list", "0"));
+		switch (theme) {
+		default:
+		case 0:
+			setTheme(R.style.DefaultTheme);
+			break;
+		case 1:
+			setTheme(R.style.GoTheme);
+			break;
+		}
+
+		int size = Integer.parseInt(settings.getString("board_size_list", "0"));
+		switch (size) {
+		default:
+		case 0:
+			getTheme().applyStyle(R.style.InfiniteBoardSizeStyle, true);
+			break;
+		case 1:
+			getTheme().applyStyle(R.style.GoBoardSizeStyle, true);
+			break;
+		case 2:
+			getTheme().applyStyle(R.style.Go3x3BoardSizeStyle, true);
+			break;
+		}
+		
 		setContentView(R.layout.activity_game);
+		
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment()).commit();
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.game, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
-	public static class PlaceholderFragment extends Fragment {
-
-		public PlaceholderFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_game, container,
-					false);
-			return rootView;
+					.add(R.id.container, new GameFragment()).commit();
 		}
 	}
 }

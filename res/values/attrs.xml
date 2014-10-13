@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="gameViewStyle" format="reference" />
+    <attr name="gameBoardSize" format="enum">
+        <enum name="infinite" value="0" />
+        <enum name="goBoard1" value="9" />
+        <enum name="goBoard3" value="29" />
+    </attr>
+    <attr name="maxScale" format="float" />
+    <attr name="minScale" format="float" />
+    
+    <declare-styleable name="GameView">
+
+        <!-- Board background color -->
+        <attr name="boardColor" format="color" />
+        <!-- Default size of individual grid boxes -->
+        <attr name="gridSize" format="dimension" />
+        <!-- Color of grid lines -->
+        <attr name="gridColor" format="color" />
+        <!-- Board placement style -->
+        <attr name="placementStyle" format="enum">
+
+            <!-- Pieces will be placed in boxes -->
+            <enum name="boxes" value="0" />
+            <!-- Pieces will be placed on intersections -->
+            <enum name="intersections" value="1" />
+        </attr>
+        <!-- Transparency level of moves currently being placed [0-255] -->
+        <attr name="placingAlpha" format="integer" />
+        <!-- Drawable to use for player 1 -->
+        <attr name="player1Drawable" format="reference" />
+        <!-- Drawable to use for player 2 -->
+        <attr name="player2Drawable" format="reference" />
+        <!-- Thickness of default lines on the board -->
+        <attr name="lineWidth" format="dimension" />
+        <!-- Thickness of thicker lines on the board -->
+        <attr name="lineWidthThick" format="dimension" />
+        <!-- Number of lines between each thick line -->
+        <attr name="thickLineSpacing" format="integer" />
+    </declare-styleable>
+
+</resources>
