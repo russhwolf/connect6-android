@@ -1,8 +1,12 @@
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <header
+        android:fragment="lol.connect6.SettingsActivity$GamePreferenceFragment"
+        android:title="@string/pref_header_game" />
 
     <!-- These settings headers are only used on tablets. -->
 
-    <header
+<!--     <header
         android:fragment="lol.connect6.SettingsActivity$GeneralPreferenceFragment"
         android:title="@string/pref_header_general" />
     <header
@@ -10,6 +14,6 @@
         android:title="@string/pref_header_notifications" />
     <header
         android:fragment="lol.connect6.SettingsActivity$DataSyncPreferenceFragment"
-        android:title="@string/pref_header_data_sync" />
+        android:title="@string/pref_header_data_sync" /> -->
 
 </preference-headers>

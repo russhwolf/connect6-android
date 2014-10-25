@@ -6,6 +6,12 @@
         android:height="32dp"
         android:width="32dp" />
     
+    <padding
+        android:bottom="-2dp"
+        android:left="-2dp"
+        android:right="-2dp"
+        android:top="-2dp" />
+    
     <solid android:color="@android:color/white"/>
 
 </shape>

@@ -15,7 +15,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
 		setContentView(R.layout.activity_main);
 		
 		findViewById(R.id.start_game).setOnClickListener(this);

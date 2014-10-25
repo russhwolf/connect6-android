@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,27 +17,28 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
-public class GameFragment extends Fragment {
+public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickListener {
 
-	private static String KEY_GAMESTATE = "gamestate";
-	
-	private static String PREFS_SAVEGAME = "lol.connect6.savegame";
+	private static final String KEY_GAMESTATE = "gamestate";
+
+	private static final String PREFS_SAVEGAME = "lol.connect6.savegame";
 	
 	private GameView mGameView;
+	private Toolbar mFooter;
 	
 	private Drawable mPlayer1Drawable;
 	private Drawable mPlayer2Drawable;
 	
-	private boolean mIsP1Turn = true;
-	
 	public GameFragment() {
 	}
-
+	
 	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-
+	public void onResume() {
+		super.onResume();
+		
+		Activity activity = getActivity();
 		TypedValue tv = new TypedValue();
 		activity.getTheme().resolveAttribute(R.attr.gameViewStyle, tv, true);
 		TypedArray ta = activity.getTheme().obtainStyledAttributes(tv.resourceId, new int[] {R.attr.player1Drawable, R.attr.player2Drawable});
@@ -56,24 +58,25 @@ public class GameFragment extends Fragment {
 		
 		// Inflate the menu; this adds items to the action bar if it is present.
 		inflater.inflate(R.menu.game, menu);
-		ActionBarActivity activity = (ActionBarActivity) getActivity();
-		ActionBar ab = activity.getSupportActionBar();
-		ab.setTitle(mIsP1Turn? R.string.player1 : R.string.player2);
-		ab.setIcon(mIsP1Turn? mPlayer1Drawable : mPlayer2Drawable);
+		boolean isP1Turn = mGameView.isP1Turn();
+		mFooter.setTitle(isP1Turn? R.string.player1 : R.string.player2);
+		mFooter.setNavigationIcon(isP1Turn? mPlayer1Drawable : mPlayer2Drawable);
 		
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {		
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		switch (item.getItemId()) {
 		case R.id.action_confirm_move:
 			if (mGameView != null) {
-				boolean wasP1Turn = mIsP1Turn;
-				mIsP1Turn = mGameView.confirmMove();
-				if (mIsP1Turn != wasP1Turn) {
+				boolean wasP1Turn = mGameView.isP1Turn();
+				boolean playing = mGameView.confirmMove();
+				boolean isP1Turn = mGameView.isP1Turn();
+				if (!playing) {
+					showWinMessage(!isP1Turn);
+					return true;
+				}
+				if (isP1Turn != wasP1Turn) {
 					// Save game as we go.
 					SharedPreferences.Editor editor = getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit();
 					editor.clear();
@@ -84,12 +87,24 @@ public class GameFragment extends Fragment {
 				return true;
 			}
 			break;
+		case R.id.action_clear_move:
+			if (mGameView != null) {
+				mGameView.clearMove();
+				return true;
+			}
+			break;
 		case R.id.action_end_game:
 			// Clear saved game and exit
 			getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
 			getActivity().finish();
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public boolean onMenuItemClick(MenuItem item) {
+		return onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -97,7 +112,12 @@ public class GameFragment extends Fragment {
 			Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_game, container,
 				false);
-		mGameView = (GameView) rootView.findViewById(R.id.gameview);
+		
+		mGameView = (GameView) rootView.findViewById(R.id.game_view);
+		
+		mFooter = (Toolbar) rootView.findViewById(R.id.footer);
+		mFooter.inflateMenu(R.menu.game_footer);
+		mFooter.setOnMenuItemClickListener(this);
 		
 		return rootView;
 	}
@@ -117,18 +137,42 @@ public class GameFragment extends Fragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+
+		ActionBar ab = ((ActionBarActivity)getActivity()).getSupportActionBar();
+		ab.setDisplayUseLogoEnabled(true);
+		ab.setDisplayShowHomeEnabled(true);
+		ab.setLogo(R.drawable.logo);
+		ab.setDisplayShowTitleEnabled(false);
 		
 		if (savedInstanceState != null) {
 			GameState state = savedInstanceState.getParcelable(KEY_GAMESTATE);
 			if (state != null) {
-				mGameView.setState(state);
+				boolean playing = mGameView.setState(state);
+				if (!playing) {
+					showWinMessage(!mGameView.isP1Turn());
+				}
 			}
 		} else {
 			// If we don't currently have state, check for a saved game and load that
 			SharedPreferences prefs = getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE);
 			if (prefs.getAll().size() > 0) {
-				mIsP1Turn = mGameView.loadGame(prefs);
+				boolean playing = mGameView.loadGame(prefs);
+				if (!playing) {
+					showWinMessage(!mGameView.isP1Turn());
+				}
 			}
 		}
+	}
+	
+	private void showWinMessage(boolean p1) {
+		String playerName = getResources().getString(p1? R.string.player1 : R.string.player2);
+		TextView message = (TextView) getView().findViewById(R.id.message_view);
+		message.setText(getResources().getString(R.string.win_message, playerName));
+		message.setVisibility(View.VISIBLE);
+		mFooter.setNavigationIcon(null);
+		mFooter.setTitle(null);
+		mFooter.getMenu().findItem(R.id.action_confirm_move).setEnabled(false);
+		mFooter.getMenu().findItem(R.id.action_clear_move).setEnabled(false);
+		getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
 	}
 }

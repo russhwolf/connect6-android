@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="lol.connect6.GameActivity" >
+
+    <item
+        android:id="@+id/action_clear_move"
+        android:title="@string/action_clear_move"
+        android:icon="@drawable/ic_action_clear_move"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_confirm_move"
+        android:title="@string/action_confirm_move"
+        android:icon="@drawable/ic_action_confirm_move"
+        app:showAsAction="ifRoom"/>
+
+</menu>

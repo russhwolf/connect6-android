@@ -6,7 +6,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 
 public class GameActivity extends ActionBarActivity {
-	
+		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
