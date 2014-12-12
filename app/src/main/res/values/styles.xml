@@ -1,0 +1,56 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+<!--        <item name="colorPrimary">@color/primary</item>-->
+    </style>
+    
+    <style name="DefaultTheme" parent="AppTheme">
+        <item name="gameViewStyle">@style/GameView</item>
+    </style>
+
+    <style name="GoTheme" parent="AppTheme">
+        <item name="gameViewStyle">@style/GameView.Go</item>
+    </style>
+
+    <style name="InfiniteBoardSizeStyle">
+        <item name="gameBoardSize">infinite</item>
+    </style>
+
+    <style name="GoBoardSizeStyle">
+        <item name="gameBoardSize">goBoard1</item>
+    </style>
+
+    <style name="Go3x3BoardSizeStyle">
+        <item name="gameBoardSize">goBoard3</item>
+    </style>
+
+    <style name="GameView">
+        <item name="boardColor">@android:color/white</item>
+        <item name="gridSize">50dp</item>
+        <item name="gridColor">@android:color/black</item>
+        <item name="gridDotRadius">0dp</item>
+        <item name="gridDotSpacing">0</item>
+        <item name="placementStyle">boxes</item>
+        <item name="placingAlpha">100</item>
+        <item name="player1Drawable">@drawable/player_x</item>
+        <item name="player2Drawable">@drawable/player_o</item>
+        <item name="lineWidth">3dp</item>
+        <item name="lineWidthThick">6dp</item>
+        <item name="thickLineSpacing">0</item>
+    </style>
+
+    <style name="GameView.Go">
+        <item name="boardColor">#996633</item>
+        <item name="gridColor">@android:color/black</item>
+        <item name="gridDotRadius">6dp</item>
+        <item name="gridDotSpacing">6</item>
+        <item name="placementStyle">intersections</item>
+        <item name="player1Drawable">@drawable/player_black</item>
+        <item name="player2Drawable">@drawable/player_white</item>
+        <item name="lineWidth">3dp</item>
+        <item name="lineWidthThick">6dp</item>
+        <item name="thickLineSpacing">0</item>
+    </style>
+
+</resources>

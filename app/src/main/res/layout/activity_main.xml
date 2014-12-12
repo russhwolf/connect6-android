@@ -1,0 +1,90 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="lol.connect6.MainActivity" >
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/action_bar"
+        style="?actionBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/abc_action_bar_default_height_material"
+        android:background="?colorPrimary" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:foreground="?android:attr/windowContentOverlay" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin" >
+
+            <Button
+                android:id="@+id/start_game"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/start_game" />
+
+            <Button
+                android:id="@+id/continue_game"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/start_game"
+                android:layout_centerInParent="true"
+                android:text="@string/continue_game" />
+
+            <Spinner
+                android:id="@+id/player1_select"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/continue_game"
+                android:layout_centerHorizontal="true"
+                android:entries="@array/ai_type"
+                android:saveEnabled="true" />
+
+            <TextView
+                android:id="@+id/player1_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/player1_select"
+                android:layout_toLeftOf="@id/player1_select"
+                android:layout_toStartOf="@id/player1_select"
+                android:text="@string/player1" />
+
+            <Spinner
+                android:id="@+id/player2_select"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/player1_select"
+                android:layout_centerHorizontal="true"
+                android:entries="@array/ai_type"
+                android:saveEnabled="true" />
+
+            <TextView
+                android:id="@+id/player2_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/player2_select"
+                android:layout_toLeftOf="@id/player2_select"
+                android:layout_toStartOf="@id/player2_select"
+                android:text="@string/player2" />
+
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@id/start_game"
+                android:layout_centerHorizontal="true"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/logo" />
+        </RelativeLayout>
+    </FrameLayout>
+
+</LinearLayout>
