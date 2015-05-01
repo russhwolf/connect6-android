@@ -1,13 +1,12 @@
 package lol.connect6;
 
-import lol.connect6.GameView.GameState;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -16,9 +15,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickListener {
+import lol.connect6.GameView.GameState;
+
+public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickListener, View.OnClickListener {
 
 	private static final String KEY_GAMESTATE = "gamestate";
 
@@ -26,7 +28,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 	
 	private GameView mGameView;
 	private Toolbar mHeader;
-	private Toolbar mFooter;
+	private ImageButton mFloatingActionButton;
 	
 	private Drawable mPlayer1Drawable;
 	private Drawable mPlayer2Drawable;
@@ -57,22 +59,31 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		
 		// Inflate the menu; this adds items to the action bar if it is present.
-		inflater.inflate(R.menu.game_header, menu);
+		inflater.inflate(R.menu.game, menu);
 		
 		boolean isP1Turn = mGameView.isP1Turn();
-		mFooter.setTitle(isP1Turn? R.string.player1 : R.string.player2);
-		mFooter.setNavigationIcon(isP1Turn? mPlayer1Drawable : mPlayer2Drawable);
+		mHeader.setTitle(isP1Turn ? R.string.player1 : R.string.player2);
+		mHeader.setNavigationIcon(isP1Turn ? mPlayer1Drawable : mPlayer2Drawable);
 		
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {		
-		return onMenuItemClick(item);
+		return onMenuItemClick(item) || super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onClick(View view) {
+		onClickById(view.getId());
 	}
 
 	@Override
 	public boolean onMenuItemClick(MenuItem item) {
-		switch (item.getItemId()) {
+		return onClickById(item.getItemId());
+	}
+
+	private boolean onClickById(int id) {
+		switch (id) {
 		case R.id.action_confirm_move:
 			if (mGameView != null) {
 				boolean wasP1Turn = mGameView.isP1Turn();
@@ -105,7 +116,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 			getActivity().finish();
 			return true;
 		}
-		return super.onOptionsItemSelected(item);
+		return false;
 	}
 
 	@Override
@@ -116,15 +127,13 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 		
 		mHeader = (Toolbar) rootView.findViewById(R.id.header);
 		mHeader.setOnMenuItemClickListener(this);
-		mHeader.setLogo(R.drawable.logo);
 		mHeader.setTitle("");
-		((ActionBarActivity)getActivity()).setSupportActionBar(mHeader);
+		((AppCompatActivity)getActivity()).setSupportActionBar(mHeader);
 		
 		mGameView = (GameView) rootView.findViewById(R.id.game_view);
-		
-		mFooter = (Toolbar) rootView.findViewById(R.id.footer);
-		mFooter.inflateMenu(R.menu.game_footer);
-		mFooter.setOnMenuItemClickListener(this);
+
+		mFloatingActionButton = (ImageButton) rootView.findViewById(R.id.action_confirm_move);
+		mFloatingActionButton.setOnClickListener(this);
 		
 		return rootView;
 	}
@@ -174,10 +183,10 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 		TextView message = (TextView) getView().findViewById(R.id.message_view);
 		message.setText(getResources().getString(R.string.win_message, playerName));
 		message.setVisibility(View.VISIBLE);
-		mFooter.setNavigationIcon(null);
-		mFooter.setTitle(null);
-		mFooter.getMenu().findItem(R.id.action_confirm_move).setEnabled(false);
-		mFooter.getMenu().findItem(R.id.action_clear_move).setEnabled(false);
+		mHeader.setNavigationIcon(null);
+		mHeader.setTitle(null);
+		mHeader.getMenu().findItem(R.id.action_clear_move).setEnabled(false);
+		mFloatingActionButton.setEnabled(false);
 		getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
 	}
 }

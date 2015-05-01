@@ -3,9 +3,9 @@ package lol.connect6;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
-public class GameActivity extends ActionBarActivity {
+public class GameActivity extends AppCompatActivity {
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

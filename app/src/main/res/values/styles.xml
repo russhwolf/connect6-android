@@ -2,7 +2,9 @@
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-<!--        <item name="colorPrimary">@color/primary</item>-->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="colorButtonNormal">@color/primary</item>
     </style>
     
     <style name="DefaultTheme" parent="AppTheme">

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="FloatingActionButton">
+        <item name="android:color">?colorAccent</item>
+        <item name="elevation">2dp</item>
+        <item name="size">normal</item>
+    </style>
+
+    <style name="FloatingActionButton.Mini">
+        <item name="size">mini</item>
+    </style>
+
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="FloatingActionButton">
+        <attr name="android:color" />
+        <attr name="elevation" />
+        <attr name="size" format="enum">
+            <enum name="normal" value="54" />
+            <enum name="mini" value="40" />
+        </attr>
+    </declare-styleable>
+
+</resources>

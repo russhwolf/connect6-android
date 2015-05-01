@@ -2,7 +2,7 @@ package lol.connect6;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener, Toolbar.OnMenuItemClickListener, Spinner.OnItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, Toolbar.OnMenuItemClickListener, Spinner.OnItemSelectedListener {
 
 	private static final int REQUEST_SETTINGS = 1;
 	private static final int REQUEST_GAME = 2;
@@ -24,6 +24,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 		setContentView(R.layout.activity_main);
 		
 		Toolbar toolbar = (Toolbar) findViewById(R.id.action_bar);
+		toolbar.setLogo(R.drawable.logo);
+		toolbar.setTitle("");
 		setSupportActionBar(toolbar);
 		
 		findViewById(R.id.start_game).setOnClickListener(this);

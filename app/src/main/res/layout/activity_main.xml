@@ -29,7 +29,7 @@
                 android:id="@+id/start_game"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
+                android:layout_centerHorizontal="true"
                 android:text="@string/start_game" />
 
             <Button
@@ -38,7 +38,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/start_game"
                 android:layout_centerInParent="true"
-                android:text="@string/continue_game" />
+                android:text="@string/continue_game"
+                android:visibility="gone"/>
 
             <Spinner
                 android:id="@+id/player1_select"
@@ -76,14 +77,6 @@
                 android:layout_toStartOf="@id/player2_select"
                 android:text="@string/player2" />
 
-            <ImageView
-                android:id="@+id/logo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@id/start_game"
-                android:layout_centerHorizontal="true"
-                android:contentDescription="@string/app_name"
-                android:src="@drawable/logo" />
         </RelativeLayout>
     </FrameLayout>
 
