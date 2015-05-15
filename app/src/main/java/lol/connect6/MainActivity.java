@@ -1,6 +1,8 @@
 package lol.connect6;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -8,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.Spinner;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, Toolbar.OnMenuItemClickListener, Spinner.OnItemSelectedListener {
@@ -18,6 +21,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private Spinner mPlayer1Select;
 	private Spinner mPlayer2Select;
 
+	private Button mStartGame;
+	private Button mContinueGame;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -27,13 +33,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		toolbar.setLogo(R.drawable.logo);
 		toolbar.setTitle("");
 		setSupportActionBar(toolbar);
-		
-		findViewById(R.id.start_game).setOnClickListener(this);
+
+		mStartGame = (Button) findViewById(R.id.start_game);
+		mContinueGame = (Button) findViewById(R.id.continue_game);
+		mStartGame.setOnClickListener(this);
+		mContinueGame.setOnClickListener(this);
 
 		mPlayer1Select = (Spinner) findViewById(R.id.player1_select);
 		mPlayer1Select.setOnItemSelectedListener(this);
 		mPlayer2Select = (Spinner) findViewById(R.id.player2_select);
 		mPlayer2Select.setOnItemSelectedListener(this);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (getSharedPreferences(GameUtils.PREFS_SAVEGAME, Activity.MODE_PRIVATE).getAll().size() > 0) {
+			mContinueGame.setVisibility(View.VISIBLE);
+		} else {
+			mContinueGame.setVisibility(View.GONE);
+		}
 	}
 
 	@Override
@@ -77,11 +96,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 	@Override
 	public void onClick(View v) {
+		Intent intent = new Intent(this, GameActivity.class);
 		switch (v.getId()) {
 		case R.id.start_game:
-			Intent intent = new Intent(this, GameActivity.class);
+			getSharedPreferences(GameUtils.PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
+
 			intent.putExtra(GameUtils.KEY_AI1, mPlayer1Select.getSelectedItemPosition());
 			intent.putExtra(GameUtils.KEY_AI2, mPlayer2Select.getSelectedItemPosition());
+			startActivityForResult(intent, REQUEST_GAME);
+			break;
+		case R.id.continue_game:
 			startActivityForResult(intent, REQUEST_GAME);
 			break;
 		}

@@ -16,19 +16,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import lol.connect6.GameView.GameState;
 
-public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickListener, View.OnClickListener {
+public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickListener, View.OnClickListener, GameView.OnAiMoveListener {
 
 	private static final String KEY_GAMESTATE = "gamestate";
 
-	private static final String PREFS_SAVEGAME = "lol.connect6.savegame";
-	
 	private GameView mGameView;
 	private Toolbar mHeader;
 	private ImageButton mFloatingActionButton;
+	private ProgressBar mProgressBar;
 	
 	private Drawable mPlayer1Drawable;
 	private Drawable mPlayer2Drawable;
@@ -63,7 +63,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 		
 		boolean isP1Turn = mGameView.isP1Turn();
 		mHeader.setTitle(isP1Turn ? R.string.player1 : R.string.player2);
-		mHeader.setNavigationIcon(isP1Turn ? mPlayer1Drawable : mPlayer2Drawable);
+		mHeader.setLogo(isP1Turn ? mPlayer1Drawable : mPlayer2Drawable);
 		
 	}
 
@@ -95,7 +95,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 				}
 				if (isP1Turn != wasP1Turn) {
 					// Save game as we go.
-					SharedPreferences.Editor editor = getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit();
+					SharedPreferences.Editor editor = getActivity().getSharedPreferences(GameUtils.PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit();
 					editor.clear();
 					mGameView.saveGame(editor);
 					editor.commit();
@@ -112,7 +112,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 			break;
 		case R.id.action_end_game:
 			// Clear saved game and exit
-			getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
+			getActivity().getSharedPreferences(GameUtils.PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
 			getActivity().finish();
 			return true;
 		}
@@ -131,10 +131,13 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 		((AppCompatActivity)getActivity()).setSupportActionBar(mHeader);
 		
 		mGameView = (GameView) rootView.findViewById(R.id.game_view);
+		mGameView.setOnAiMoveListener(this);
 
 		mFloatingActionButton = (ImageButton) rootView.findViewById(R.id.action_confirm_move);
 		mFloatingActionButton.setOnClickListener(this);
-		
+
+		mProgressBar = (ProgressBar) rootView.findViewById(R.id.loading);
+
 		return rootView;
 	}
 			
@@ -164,7 +167,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 			}
 		} else {
 			// If we don't currently have state, check for a saved game and load that
-			SharedPreferences prefs = getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE);
+			SharedPreferences prefs = getActivity().getSharedPreferences(GameUtils.PREFS_SAVEGAME, Activity.MODE_PRIVATE);
 			if (prefs.getAll().size() > 0) {
 				boolean playing = mGameView.loadGame(prefs);
 				if (!playing) {
@@ -183,10 +186,38 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 		TextView message = (TextView) getView().findViewById(R.id.message_view);
 		message.setText(getResources().getString(R.string.win_message, playerName));
 		message.setVisibility(View.VISIBLE);
-		mHeader.setNavigationIcon(null);
+		mHeader.setLogo(null);
 		mHeader.setTitle(null);
 		mHeader.getMenu().findItem(R.id.action_clear_move).setEnabled(false);
 		mFloatingActionButton.setEnabled(false);
-		getActivity().getSharedPreferences(PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
+		getActivity().getSharedPreferences(GameUtils.PREFS_SAVEGAME, Activity.MODE_PRIVATE).edit().clear().commit();
+	}
+
+	@Override
+	public void onAiBegin() {
+		if (getView() != null) {
+			getView().post(new Runnable() {
+				@Override
+				public void run() {
+					mHeader.getMenu().findItem(R.id.action_clear_move).setEnabled(false);
+					mFloatingActionButton.setVisibility(View.INVISIBLE);
+					mProgressBar.setVisibility(View.VISIBLE);
+				}
+			});
+		}
+	}
+
+	@Override
+	public void onAiComplete() {
+		if (getView() != null) {
+			getView().post(new Runnable() {
+				@Override
+				public void run() {
+					mHeader.getMenu().findItem(R.id.action_clear_move).setEnabled(true);
+					mFloatingActionButton.setVisibility(View.VISIBLE);
+					mProgressBar.setVisibility(View.INVISIBLE);
+				}
+			});
+		}
 	}
 }

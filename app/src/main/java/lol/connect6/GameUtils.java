@@ -8,6 +8,8 @@ import android.util.Log;
 import android.util.SparseArray;
 
 public class GameUtils {
+	public static final String PREFS_SAVEGAME = "lol.connect6.savegame";
+
 	public static final String KEY_AI1 = "ai1";
 	public static final String KEY_AI2 = "ai2";
 	

@@ -12,13 +12,17 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ScaleGestureDetectorCompat;
 import android.support.v4.view.WindowCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -27,6 +31,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 	
 	private static final String KEY_MOVE = "move";
 	private static final String KEY_PLAYING = "playing";
+	private static final String KEY_BOARD_SIZE = "board_size";
 	
 	// Why on earth aren't these constants auto-generated in R somewhere?
 	public static final int PLACEMENT_STYLE_BOXES = 0;
@@ -34,7 +39,8 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		
 	private static final int[] COORDS = new int[2];
 	
-	private final int mBoardSize;
+//	private final int mBoardSize;
+
 	private final float mMinScale;
 	private final float mMaxScale;
 	
@@ -50,12 +56,15 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 	private final GestureDetector mGestureDetector;
 	private final ScaleGestureDetector mScaleGestureDetector;
 
-	private final GameState mState = new GameState();
+	private final GameState mState;
 	
 	private final Paint mLinePaint;
 	private final Paint mThickLinePaint;
 	private final Paint mBackgroundPaint;
 	private final Paint mDotPaint;
+
+	private OnAiMoveListener mListener;
+	private boolean mAiMoving = false;
 	
 	public GameView(Context context) {
 		this(context, null, 0);
@@ -67,14 +76,16 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 	
 	public GameView(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		
+
 		TypedArray ta;
 		
-		ta = context.getTheme().obtainStyledAttributes(new int[] {R.attr.gameBoardSize, R.attr.maxScale, R.attr.minScale});
-		mBoardSize = ta.getInteger(0, 0);
+		ta = context.getTheme().obtainStyledAttributes(new int[]{R.attr.gameBoardSize, R.attr.maxScale, R.attr.minScale});
+		int boardSize = ta.getInteger(0, 0);
 		mMaxScale = ta.getFloat(1, 3/2f);
 		mMinScale = ta.getFloat(2, 1/3f);
 		ta.recycle();
+
+		mState = new GameState(boardSize);
 		
 		ta = context.obtainStyledAttributes(attrs, R.styleable.GameView, R.attr.gameViewStyle, 0);
 		int boardColor = ta.getColor(R.styleable.GameView_boardColor, Color.WHITE);
@@ -101,8 +112,10 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		
 		mGestureDetector = new GestureDetector(getContext(), this);
 		mScaleGestureDetector = new ScaleGestureDetector(getContext(), this);
-		initializeGestureDetectors();
-		
+		mGestureDetector.setOnDoubleTapListener(this);
+//		mGestureDetector.setIsLongpressEnabled(false);
+//		ScaleGestureDetectorCompat.setQuickScaleEnabled(mScaleGestureDetector, false);
+
 		mLinePaint = new Paint();
 		mLinePaint.setStyle(Paint.Style.STROKE);
 		mLinePaint.setTextAlign(Align.CENTER);
@@ -121,12 +134,10 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		mBackgroundPaint.setStyle(Paint.Style.FILL);
 	}
 
-	private void initializeGestureDetectors() {
-		mGestureDetector.setOnDoubleTapListener(this);
-		mGestureDetector.setIsLongpressEnabled(false);
-		ScaleGestureDetectorCompat.setQuickScaleEnabled(mScaleGestureDetector, false);
+	public void setOnAiMoveListener(OnAiMoveListener listener) {
+		mListener = listener;
 	}
-	
+
 	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -177,11 +188,11 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		int gridRight = gridCenterX + halfGridWidth + 1;
 		int gridBottom = gridCenterY + halfGridHeight + 1;
 		
-		if (mBoardSize > 0) {
-			gridLeft = Math.max(gridLeft, -mBoardSize);
-			gridTop = Math.max(gridTop, -mBoardSize);
-			gridRight = Math.min(gridRight, mBoardSize);
-			gridBottom = Math.min(gridBottom, mBoardSize);
+		if (mState.boardSize > 0) {
+			gridLeft = Math.max(gridLeft, -mState.boardSize);
+			gridTop = Math.max(gridTop, -mState.boardSize);
+			gridRight = Math.min(gridRight, mState.boardSize);
+			gridBottom = Math.min(gridBottom, mState.boardSize);
 		}
 		
 		float boardLeft = -mState.x + getWidth()/2f + mGridSize*(gridLeft - 0.5f);
@@ -270,7 +281,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		
 		int gx = (int)Math.floor(px/(mGridSize) + 0.5);
 		int gy = (int)Math.floor(py/(mGridSize) + 0.5);
-		Log.d("Gesture", "  Grid coords "+gx+", "+gy);
+		Log.d("Gesture", "  Grid coords " + gx + ", " + gy);
 		
 		out[0] = gx;
 		out[1] = gy;
@@ -278,7 +289,21 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 	
 	private void centerView() {
 		if (mState.moves.size() > 0 || mState.move1 > 0 || mState.move2 > 0) {
-			int minX = 0, maxX = 0, minY = 0, maxY = 0;
+			int index0;
+			if (mState.moves.size() > 0) {
+				index0 = mState.moves.get(0);
+			} else if (mState.move1 > 0) {
+				index0 = mState.move1;
+			} else if (mState.move2 > 0) {
+				index0 = mState.move2;
+			} else {
+				// This should never happen
+				index0 = GridUtils.ORIGIN_INDEX;
+			}
+			GridUtils.indexToCoords(index0, COORDS);
+			int minX, maxX, minY, maxY;
+			minX = maxX = COORDS[0];
+			minY = maxY = COORDS[1];
 			for (int index : mState.moves) {
 				GridUtils.indexToCoords(index, COORDS);
 				minX = minX < COORDS[0]? minX : COORDS[0];
@@ -327,12 +352,12 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 			mState.y = 0;
 			mState.scale = 1;
 		}
-		invalidate();
+		postInvalidate();
 	}
 
 	@Override
 	public boolean onDown(MotionEvent e) {
-		Log.d("Gesture", "Down at "+e.getX()+", "+e.getY());
+		Log.d("Gesture", "Down at " + e.getX() + ", " + e.getY());
 		return true;
 	}
 
@@ -345,8 +370,10 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 
 	@Override
 	public void onLongPress(MotionEvent e) {
-		Log.d("Gesture", "Long press at "+e.getX()+", "+e.getY());
+		Log.d("Gesture", "Long press at " + e.getX() + ", " + e.getY());
 
+		performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+		centerView();
 	}
 
 	@Override
@@ -358,9 +385,9 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		float y = mState.y + distanceY/mState.scale;
 		
 		// Don't scroll a finite board too far
-		if (mBoardSize > 0) {
-			float max = mBoardSize * mGridSize;
-			float min = -mBoardSize * mGridSize;
+		if (mState.boardSize > 0) {
+			float max = mState.boardSize * mGridSize;
+			float min = -mState.boardSize * mGridSize;
 			x = Math.min(x, max);
 			x = Math.max(x, min);
 			y = Math.min(y, max);
@@ -386,7 +413,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 	}
 	
 	private void addMove(int gridIndex) {
-		if (!mState.playing) return;
+		if (!mState.playing || mAiMoving) return;
 		
 		if (mState.move1 == gridIndex) {
 			mState.move1 = 0;
@@ -416,7 +443,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 //		int gridIndex = getGridIndexFromEvent(e);
 		getGridCoordsFromEvent(e, COORDS);
 		
-		if (mBoardSize > 0 && (COORDS[0] < -mBoardSize || COORDS[0] > mBoardSize || COORDS[1] < -mBoardSize || COORDS[1] > mBoardSize)) {
+		if (mState.boardSize > 0 && (COORDS[0] < -mState.boardSize || COORDS[0] > mState.boardSize || COORDS[1] < -mState.boardSize || COORDS[1] > mState.boardSize)) {
 			// Clicked outside of a finite board
 			return true;
 		}
@@ -429,16 +456,16 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 
 	@Override
 	public boolean onDoubleTap(MotionEvent e) {
-		Log.d("Gesture", "Double tap at "+e.getX()+", "+e.getY());
+		Log.d("Gesture", "Double tap at " + e.getX() + ", " + e.getY());
 		
-		centerView();
+//		centerView();
 		
 		return true;
 	}
 
 	@Override
 	public boolean onDoubleTapEvent(MotionEvent e) {
-		Log.d("Gesture", "On double tap event at "+e.getX()+", "+e.getY());
+		Log.d("Gesture", "On double tap event at " + e.getX() + ", " + e.getY());
 		return false;
 	}	
 
@@ -514,20 +541,41 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 	}
 	
 	private void aiMove() {
-		if (mState.ai1 > 0 && isP1Turn()) {
-			GameUtils.aiMove(mState.moves, mState.ai1);
-			centerView();
-			if (GameUtils.checkWin(mState.moves)) {
-				mState.playing = false;
-			}
+		mAiMoving = true;
+		if (mListener != null) {
+			mListener.onAiBegin();
 		}
-		if (mState.ai2 > 0 && !isP1Turn()) {
-			GameUtils.aiMove(mState.moves, mState.ai2);
-			centerView();
-			if (GameUtils.checkWin(mState.moves)) {
-				mState.playing = false;
+
+		new AsyncTask<Void,Void,Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				if (mState.ai1 > 0 && isP1Turn()) {
+					GameUtils.aiMove(mState.moves, mState.ai1);
+					centerView();
+					if (GameUtils.checkWin(mState.moves)) {
+						mState.playing = false;
+					}
+				}
+				if (mState.ai2 > 0 && !isP1Turn()) {
+					GameUtils.aiMove(mState.moves, mState.ai2);
+					centerView();
+					if (GameUtils.checkWin(mState.moves)) {
+						mState.playing = false;
+					}
+				}
+
+				return null;
 			}
-		}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				mAiMoving = false;
+				if (mListener != null) {
+					mListener.onAiComplete();
+				}
+			}
+		}.execute();
 	}
 	
 	void clearMove() {
@@ -543,6 +591,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		editor.putBoolean(KEY_PLAYING, mState.playing);
 		editor.putInt(GameUtils.KEY_AI1, mState.ai1);
 		editor.putInt(GameUtils.KEY_AI2, mState.ai2);
+		editor.putInt(KEY_BOARD_SIZE, mState.boardSize);
 	}
 	
 	boolean loadGame(SharedPreferences prefs) {
@@ -553,6 +602,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		mState.playing = prefs.getBoolean(KEY_PLAYING, true);
 		mState.ai1 = prefs.getInt(GameUtils.KEY_AI1, 0);
 		mState.ai2 = prefs.getInt(GameUtils.KEY_AI2, 0);
+		mState.boardSize = prefs.getInt(KEY_BOARD_SIZE, 0);
 		invalidate();
 		return mState.playing;
 	}
@@ -568,6 +618,11 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 		private boolean playing = true;
 		private int ai1 = 0;
 		private int ai2 = 0;
+		private int boardSize = 0;
+
+		GameState(int boardSize) {
+			this.boardSize = boardSize;
+		}
 		
 		public void copyState(GameState other) {
 			this.moves.clear();
@@ -580,6 +635,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 			this.playing = other.playing;
 			this.ai1 = other.ai1;
 			this.ai2 = other.ai2;
+			this.boardSize = other.boardSize;
 		}
 
 		@Override
@@ -598,13 +654,14 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 			dest.writeInt(playing? 1 : 0);
 			dest.writeInt(ai1);
 			dest.writeInt(ai2);
+			dest.writeInt(boardSize);
 		}
 
 		public static Creator<GameState> CREATOR = new Creator<GameState>() {
 
 			@Override
 			public GameState createFromParcel(Parcel source) {
-				GameState out = new GameState();
+				GameState out = new GameState(0);
 				source.readList(out.moves, null);
 				out.x = source.readFloat();
 				out.y = source.readFloat();
@@ -614,6 +671,7 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 				out.playing = source.readInt() > 0;
 				out.ai1 = source.readInt();
 				out.ai2 = source.readInt();
+				out.boardSize = source.readInt();
 				return out;
 			}
 
@@ -623,6 +681,11 @@ public class GameView extends View implements GestureDetector.OnGestureListener,
 			}
 
 		};
+	}
+
+	public interface OnAiMoveListener {
+		void onAiBegin();
+		void onAiComplete();
 	}
 
 }

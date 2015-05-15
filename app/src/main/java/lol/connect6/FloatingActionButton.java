@@ -117,9 +117,8 @@ public class FloatingActionButton extends ImageButton {
 		base.setSize(size, size);
 		base.setShape(GradientDrawable.OVAL);
 
-		ColorStateList colorStateList = new ColorStateList(new int[][]{new int[0]}, new int[]{0x66ffffff});
+		ColorStateList colorStateList = new ColorStateList(new int[][]{new int[0]}, new int[]{getResources().getColor(R.color.ripple_material_light)});
 		RippleDrawable ripple = new RippleDrawable(colorStateList, base, null);
-
 		return ripple;
 	}
 
