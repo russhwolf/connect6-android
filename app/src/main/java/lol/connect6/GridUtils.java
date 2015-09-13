@@ -105,20 +105,17 @@ public class GridUtils {
 	public static int coordsToIndex(int x, int y) {
 		int layer = coordsToLayer(x, y);
 		int a = 2*layer;
-		int c1 = a*a - a + 1;
-		int c2 = c1 + a;
-		int c3 = c2 + a;
-		int c4 = c3 + a;
-		
+		int b = a*a + 1;
+
 		int index;
 		if (y == -layer) {
-			index = c4 - (layer - x);
+			index = b + 2*a - (layer - x);
 		} else if (x == -layer) {
-			index = c3 - (layer + y);
+			index = b   + a - (layer + y);
 		} else if (y == layer) {
-			index = c2 - (layer + x);
+			index = b       - (layer + x);
 		} else if (x == layer) {
-			index = c1 - (layer - y);
+			index = b   - a - (layer - y);
 		} else {
 			throw new IllegalStateException();
 		}
@@ -127,12 +124,17 @@ public class GridUtils {
 	}
 
 	private static int indexToLayer(int index) {
-		int layer = 0;
-		while ( (2*layer+1)*(2*layer+1) < index) {
-			layer++;
-		}
-		return layer;
+//		int layer = 0;
+//		while ( (2*layer+1)*(2*layer+1) < index) {
+//			layer++;
+//		}
+//		return layer;
+
 //		return (int) (Math.ceil((Math.sqrt(index)-1)/2) + 0.5);
+
+		int layer = 0;
+		for (int a; (a=2*layer+1)*a < index; layer++);
+		return layer;
 	}
 	
 	private static int coordsToLayer(int x, int y) {

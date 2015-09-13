@@ -2,8 +2,14 @@
 <resources>
 
     <!--<color name="primary">#5f3759df</color>-->
-    <color name="primary">#ff6487ed</color>
+    <!--<color name="primary">#ff6487ed</color>-->
     <!--<color name="accent">#ff5110b4</color>-->
-    <color name="accent">#ff3759df</color>
+    <!--<color name="accent">#ff3759df</color>-->
+
+
+    <color name="primary">#ff6487ed</color>
+    <color name="dark">#ff3759df</color>
+    <color name="accent">@color/primary</color>
+    <color name="button">@color/accent</color>
 
 </resources>

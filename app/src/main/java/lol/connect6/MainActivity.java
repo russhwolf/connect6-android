@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			long id) {
 		if (position != 0) {
 			// If we just selected an AI, set the other player to human.
-			Spinner other = parent.equals(mPlayer1Select)? mPlayer2Select : mPlayer1Select;
+			Spinner other = parent.getId() == mPlayer1Select.getId()? mPlayer2Select : mPlayer1Select;
 			if (other.getSelectedItemPosition() != 0) other.setSelection(0);
 		}
 	}

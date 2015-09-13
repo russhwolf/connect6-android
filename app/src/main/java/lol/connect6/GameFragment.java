@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,7 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -27,7 +28,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 
 	private GameView mGameView;
 	private Toolbar mHeader;
-	private ImageButton mFloatingActionButton;
+	private FloatingActionButton mFloatingActionButton;
 	private ProgressBar mProgressBar;
 	
 	private Drawable mPlayer1Drawable;
@@ -133,7 +134,7 @@ public class GameFragment extends Fragment implements Toolbar.OnMenuItemClickLis
 		mGameView = (GameView) rootView.findViewById(R.id.game_view);
 		mGameView.setOnAiMoveListener(this);
 
-		mFloatingActionButton = (ImageButton) rootView.findViewById(R.id.action_confirm_move);
+		mFloatingActionButton = (FloatingActionButton) rootView.findViewById(R.id.action_confirm_move);
 		mFloatingActionButton.setOnClickListener(this);
 
 		mProgressBar = (ProgressBar) rootView.findViewById(R.id.loading);
